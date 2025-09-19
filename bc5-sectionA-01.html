@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>华文互动测验 - 五年级</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'SimSun', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .header h1 {
+            color: #764ba2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .score-item {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .start-screen, .set-selection-screen, .quiz-screen, .result-screen {
+            display: none;
+        }
+
+        .start-screen.active, .set-selection-screen.active, .quiz-screen.active, .result-screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .selection-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .level-btn, .set-btn {
+            padding: 20px 40px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .level-btn span {
+            display: block;
+            font-size: 0.8em;
+            font-weight: normal;
+            opacity: 0.8;
+        }
+
+        .level-btn:before, .set-btn:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .level-btn:hover:before, .set-btn:hover:before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .level-btn:hover, .set-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .passage {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 5px solid #764ba2;
+            font-size: 1.1em;
+            line-height: 1.8;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .question-container {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            border-color: #764ba2;
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #1a5930;
+        }
+
+        .option-btn.incorrect {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #721c24;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .quiz-nav {
+            justify-content: space-between;
+        }
+
+        .nav-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .result-content {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .result-emoji {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .result-score {
+            font-size: 2em;
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .result-message {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .feedback-container {
+            margin-top: 15px;
+            min-height: 50px;
+        }
+        
+        .feedback {
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.95em;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.correct { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .feedback.incorrect { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        .countdown {
+            text-align: center;
+            font-weight: bold;
+            color: #764ba2;
+            margin-top: 10px;
+            font-size: 1em;
+            display: none;
+        }
+
+        .timer {
+            font-size: 1.2em;
+            color: #764ba2;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.8em; }
+            .options { grid-template-columns: 1fr; }
+            .level-btn, .set-btn { padding: 15px 30px; font-size: 1em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🎓 华文互动测验 - 五年级 🎓</h1>
+        </header>
+
+        <!-- Start Screen (Level Selection) -->
+        <div class="start-screen active">
+            <div class="passage" style="text-align: center; font-size: 1.2em;">
+                <p>欢迎来到华文互动测验！</p>
+                <p>请选择你想挑战的等级：</p>
+            </div>
+            <div class="selection-container">
+                <button class="level-btn" onclick="showSetScreen('level1')">第一级 <span>文章长度: 300-400字</span></button>
+                <button class="level-btn" onclick="showSetScreen('level2')">第二级 <span>文章长度: 600-800字</span></button>
+                <button class="level-btn" onclick="showSetScreen('level3')">第三级 <span>文章长度: 1000-1200字</span></button>
+            </div>
+        </div>
+        
+        <!-- Set Selection Screen -->
+        <div class="set-selection-screen">
+            <div class="passage" style="text-align: center; font-size: 1.2em;">
+                <p>请选择题组：</p>
+            </div>
+            <div class="selection-container" id="set-selection-container">
+                <!-- Set buttons will be dynamically inserted here -->
+            </div>
+             <div class="nav-buttons">
+                <button class="nav-btn" onclick="showLevelScreen()">返回等级选择</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div class="quiz-screen">
+            <div class="score-board">
+                <div class="score-item">题目：<span id="current-question">1</span>/<span id="total-questions">5</span></div>
+                <div class="score-item">得分：<span id="current-score">0</span></div>
+                <div class="score-item">⏱️ <span id="timer">00:00</span></div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+            <div class="passage" id="passage"></div>
+            <div class="question-container">
+                <div class="question-text" id="question-text"></div>
+                <div class="options" id="options"></div>
+                <div class="feedback-container">
+                    <div class="feedback" id="feedback"></div>
+                    <div class="countdown" id="countdown"></div>
+                </div>
+            </div>
+            <div class="nav-buttons quiz-nav">
+                <button class="nav-btn" id="prev-btn" onclick="previousQuestion()" style="display: none;">上一题</button>
+                <button class="nav-btn" onclick="restartQuiz()">返回目录</button>
+                <button class="nav-btn" id="next-btn" onclick="nextQuestion()" style="display: none;">下一题</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="result-screen">
+            <div class="result-content">
+                <div class="result-emoji" id="result-emoji">🎉</div>
+                <div class="result-score">你的得分：<span id="final-score">0/5</span></div>
+                <div class="result-message" id="result-message"></div>
+                <div class="nav-buttons" style="gap: 20px;">
+                    <button class="nav-btn" onclick="reviewAnswers()">查看答案</button>
+                    <button class="nav-btn" onclick="restartCurrentQuiz()">再试一次</button>
+                    <button class="nav-btn" onclick="restartQuiz()">返回目录</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = {
+            level1: {
+                set1: {
+                    name: "第一组：勇敢的小鸟",
+                    passage: `小鸟阳阳生活在森林里，它天生胆小，总是躲在巢里不敢出来。其他小鸟都学会了飞翔，在天空中自由翱翔，只有阳阳还不会飞。一天，森林里来了一只老鹰，所有的小动物都吓得躲了起来。阳阳的妈妈出去找食物还没回来，阳阳非常担心。它鼓起勇气，第一次展开翅膀，摇摇晃晃地飞了起来。虽然飞得不稳，但阳阳成功地找到了妈妈，并带她躲到了安全的地方。从那以后，阳阳明白了：勇气不是不害怕，而是即使害怕也要向前。它每天都练习飞翔，最终成为了森林里飞得最高的小鸟。`,
+                    questions: [
+                        { question: "阳阳为什么一直不会飞翔？", options: ["A. 翅膀受伤了", "B. 天生胆小不敢尝试", "C. 妈妈不让它飞", "D. 它不喜欢飞翔"], correct: 1, feedback: "文中提到阳阳'天生胆小，总是躲在巢里不敢出来'。" },
+                        { question: "什么事情让阳阳第一次尝试飞翔？", options: ["A. 想和朋友玩耍", "B. 肚子饿了", "C. 担心妈妈的安全", "D. 被老鹰追赶"], correct: 2, feedback: "老鹰来了，妈妈还没回来，阳阳担心妈妈才鼓起勇气飞翔。" },
+                        { question: "阳阳明白了什么道理？", options: ["A. 飞翔很容易", "B. 勇气是即使害怕也要向前", "C. 要听妈妈的话", "D. 老鹰不可怕"], correct: 1, feedback: "文中明确指出：'勇气不是不害怕，而是即使害怕也要向前'。" },
+                        { question: "最后阳阳变成了怎样的小鸟？", options: ["A. 最漂亮的小鸟", "B. 最大的小鸟", "C. 飞得最高的小鸟", "D. 唱歌最好听的小鸟"], correct: 2, feedback: "故事结尾提到阳阳'成为了森林里飞得最高的小鸟'。" },
+                        { question: "这个故事告诉我们什么？", options: ["A. 要保护环境", "B. 克服恐惧才能成长", "C. 要孝顺父母", "D. 友谊很重要"], correct: 1, feedback: "整个故事讲述了阳阳克服恐惧学会飞翔的过程。" }
+                    ]
+                },
+                set2: {
+                    name: "第二组：团结的力量",
+                    passage: `蚂蚁村里住着许多勤劳的蚂蚁。一天，它们发现了一块很大的面包，但面包太重了，一只蚂蚁根本搬不动。小蚂蚁明明试了又试，用尽全力也只能让面包稍微动一下。它没有放弃，而是跑回村里叫来了伙伴们。十只、二十只、五十只蚂蚁齐心协力，终于把面包搬回了家。冬天来了，其他动物都在挨饿，只有蚂蚁村因为储存了足够的食物而度过了寒冬。村长说："一根筷子容易折断，一把筷子难以折断。团结就是我们最大的力量！"从此，蚂蚁们更加团结，无论遇到什么困难，大家都会互相帮助，共同解决。`,
+                    questions: [
+                        { question: "蚂蚁们遇到了什么问题？", options: ["A. 找不到食物", "B. 面包太大搬不动", "C. 迷路了", "D. 下雨了"], correct: 1, feedback: "文中提到'面包太重了，一只蚂蚁根本搬不动'。" },
+                        { question: "明明是怎么解决问题的？", options: ["A. 放弃了", "B. 把面包吃掉一部分", "C. 叫来伙伴帮忙", "D. 等面包变小"], correct: 2, feedback: "明明'跑回村里叫来了伙伴们'一起搬面包。" },
+                        { question: "为什么蚂蚁村能度过寒冬？", options: ["A. 冬天不冷", "B. 储存了足够的食物", "C. 搬到温暖的地方", "D. 冬眠了"], correct: 1, feedback: "因为蚂蚁们团结协作，储存了足够的食物。" },
+                        { question: "'一根筷子容易折断，一把筷子难以折断'说明了什么？", options: ["A. 筷子很结实", "B. 要爱护筷子", "C. 团结力量大", "D. 筷子很有用"], correct: 2, feedback: "这句话比喻团结的力量是强大的。" },
+                        { question: "这个故事的主题是什么？", options: ["A. 勤劳致富", "B. 团结协作", "C. 节约粮食", "D. 尊老爱幼"], correct: 1, feedback: "整个故事强调了团结协作的重要性。" }
+                    ]
+                }
+            },
+            level2: {
+                 set3: {
+                    name: "第三组：小发明家与AI管家",
+                    passage: `小明是一个热爱科学和发明的小学生，他的房间里堆满了各种零件和半成品。他最大的梦想就是创造一个能帮助人们解决生活难题的机器人。经过无数个日夜的努力，他终于用废旧的电脑零件和开源代码，组装出了一个名叫“智宝”的AI管家。智宝的外形像一个会滚动的球，顶上有一块可以显示各种表情的屏幕。它不仅能通过语音与小明交流，还能连接网络查询资料，甚至能控制房间里的智能家居设备。一天，小明的妈妈在厨房做饭时，突然发现盐用完了，而外面正下着倾盆大雨。妈妈非常着急，因为晚餐的汤还等着放盐。小明得知后，立刻对智宝下达了指令：“智宝，查询一下有没有邻居在线，并且帮我问问谁家有多余的盐可以借给我们。”智宝的屏幕闪烁了几下，很快就通过社区邻里互助的APP联系上了住在楼下的王阿姨。王阿姨正好有多余的盐，并且很乐意帮忙。智宝甚至还规划了一条让王阿姨家的小机器人送盐上来的路线，避免了人们在大雨中外出的麻烦。晚餐时，喝着美味的汤，妈妈不停地夸奖小明和他的得力助手智宝。小明心里美滋滋的，他意识到，科技的真正意义不在于它有多么酷炫，而在于它如何实实在在地帮助人们，让生活变得更美好，人与人之间的联系也因此变得更紧密。他决定未来要继续升级智宝，让它学会更多本领，服务更多的人。`,
+                    questions: [
+                        { question: "小明制作“智宝”的主要目的是什么？", options: ["A. 参加学校的比赛", "B. 帮助人们解决生活难题", "C. 拥有一个新玩具", "D. 学习编程知识"], correct: 1, feedback: "文中提到，他最大的梦想就是创造一个能帮助人们解决生活难题的机器人。" },
+                        { question: "“智宝”通过什么方式帮助小明妈妈解决了缺盐的问题？", options: ["A. 自己出门去买盐", "B. 让小明冒雨去借", "C. 通过网络联系邻居", "D. 让外卖员送盐"], correct: 2, feedback: "智宝通过社区邻里互助的APP联系上了住在楼下的王阿姨。" },
+                        { question: "“智宝”的外形是怎样的？", options: ["A. 人形机器人", "B. 一只会飞的无人机", "C. 一个会滚动的球", "D. 一台平板电脑"], correct: 2, feedback: "文中描述，智宝的外形像一个会滚动的球。" },
+                        { question: "这个故事说明了科技的什么真正意义？", options: ["A. 科技非常复杂难懂", "B. 科技能代替人类思考", "C. 科技能让生活更便利，人际关系更紧密", "D. 科技会让人变得懒惰"], correct: 2, feedback: "小明意识到，科技的意义在于它如何实实在在地帮助人们，并让人们联系更紧密。" },
+                        { question: "小明未来的计划是什么？", options: ["A. 卖掉智宝赚钱", "B. 再做一个新机器人", "C. 停止发明创造", "D. 继续升级智宝，服务更多人"], correct: 3, feedback: "故事结尾提到，他决定未来要继续升级智宝，让它学会更多本领。" }
+                    ]
+                },
+                 set4: {
+                    name: "第四组：时间的守护者",
+                    passage: `在一个古老的小镇上，有一座被遗忘的钟楼，钟楼里的大钟已经几十年没有响过了。镇上的孩子们都说，钟楼里住着一位神秘的“时间守护者”。传说，他是一个从不衰老的老人，独自守护着时间的秘密。十二岁的莉莉对此充满了好奇。她不相信那些神神叨叨的传说，她认为大钟不响肯定是有科学原因的。在一个月圆之夜，莉莉带上手电筒和工具包，偷偷溜进了尘封已久的钟楼。钟楼内部布满了蜘蛛网，巨大的齿轮和摆锤静静地悬在空中，像一座钢铁森林。在钟楼的顶层，她没有看到传说中的老人，只有一个小小的房间，里面摆满了各种钟表零件和一张工作台。桌上有一本厚厚的日记。莉莉翻开日记，发现它的主人是小镇曾经最出色的钟表匠，也是她的曾祖父。日记里详细记录了曾祖父对这座大钟的深厚感情，以及他在晚年时如何努力想修复一个关键的磨损齿轮，但最终因视力衰退和体力不支而抱憾放弃。他担心后人无法理解这些复杂的机械结构，所以留下了这本日记，希望有缘人能完成他的心愿。日记的最后一页写着：“我并非守护时间，我只是希望这座钟能再次为小镇歌唱，提醒人们珍惜每一个瞬间。”莉莉被曾祖父的精神深深打动了。她利用自己从书本上学到的机械知识，对照着日记里的图纸，仔细地检查着大钟的内部结构。她发现那个关键齿轮确实因为一个微小的部件错位而卡住了。经过几个小时的小心翼翼的调整和润滑，她终于将它修复。当清晨的第一缕阳光照进钟楼时，莉莉拉动了启动杆。伴随着一阵沉重的机括声，“铛…铛…铛…”，清脆而洪亮的钟声时隔五十年，再次回荡在小镇的上空。镇上的人们纷纷走出家门，惊讶地望着钟楼。从那天起，莉莉成为了新的“时间守护者”，但她告诉所有人，真正的守护者是她的曾祖父，以及每一个热爱生活、珍惜时间的人。`,
+                    questions: [
+                        { question: "莉莉进入钟楼的初衷是什么？", options: ["A. 寻找宝藏", "B. 证明传说是假的，找出科学原因", "C. 和朋友们探险", "D. 寻找时间守护者"], correct: 1, feedback: "她不相信传说，认为大钟不响肯定是有科学原因的。" },
+                        { question: "莉莉在钟楼里发现了什么？", options: ["A. 一位神秘的老人", "B. 曾祖父的日记和工作室", "C. 很多金银财宝", "D. 一张藏宝图"], correct: 1, feedback: "她发现了一个小房间，里面有零件、工作台和一本厚厚的日记，日记的主人是她的曾祖父。" },
+                        { question: "大钟停止工作的主要原因是什么？", options: ["A. 缺少电力", "B. 有人故意破坏", "C. 一个关键齿轮的微小部件错位", "D. 钟楼太旧了"], correct: 2, feedback: "莉莉发现那个关键齿轮确实因为一个微小的部件错位而卡住了。" },
+                        { question: "日记的最后一页揭示了钟表匠的什么心愿？", options: ["A. 成为永生的时间守护者", "B. 让钟声提醒人们珍惜时间", "C. 保护钟楼里的秘密", "D. 等待他的后人出现"], correct: 1, feedback: "日记写着：'希望这座钟能再次为小镇歌唱，提醒人们珍惜每一个瞬间。'" },
+                        { question: "这个故事告诉我们最重要的道理是什么？", options: ["A. 传说都是骗人的", "B. 要有探索精神和动手能力", "C. 精神和信念可以代代相传", "D. B和C都是"], correct: 3, feedback: "故事不仅体现了莉莉的探索和动手能力，更强调了她被曾祖父精神感动并传承下去的核心。" }
+                    ]
+                }
+            },
+            level3: {
+                set5: {
+                    name: "第五组：深海下的“龙宫”",
+                    passage: `在浩瀚的太平洋深处，有一个被科学家们称为“龙宫”的海底热液区。这里是地球上最极端的环境之一：漆黑一片，压力巨大，温度极高，且从海底裂缝中不断喷涌出富含硫化物等有毒物质的热泉。在这样的“生命禁区”里，中国科学家们通过“奋斗者”号深潜器，发现了一个前所未见的、繁荣的生态系统。博士生林苒是这次深潜任务中最年轻的科学家，她从小就对深海世界充满了无限的向往。当“奋斗者”号缓缓下潜，舷窗外的世界从蔚蓝变为深蓝，最终陷入一片伸手不见五指的黑暗时，她的内心充满了激动与敬畏。几个小时后，潜器抵达了“龙宫”。借助强大的探照灯，一幅奇异的景象展现在她眼前：几十米高的“黑烟囱”如林立的塔楼，从烟囱口喷出滚滚的黑色热液，像巨龙在吐息。更让她震惊的是，在这片“龙宫”的周围，竟然生机勃勃。没有阳光，这里的生物们演化出了一套独特的生存法则。巨大的管状蠕虫身披鲜红的“外衣”，它们没有嘴和消化系统，完全依靠体内共生的细菌来“消化”热泉中的化学物质获取能量。成群的白色盲虾和螃蟹在热液喷口附近爬行，它们依靠特殊的感受器官来“看见”这个黑暗的世界。还有一些奇特的贝类，它们的外壳能够抵御强酸和高压，顽强地附着在岩石上。林苒和同事们小心翼翼地操作机械臂，采集了这里的生物样本、水样和岩石样本。这些样本对于研究地球生命的起源、寻找地外生命，以及开发生物资源都具有不可估量的价值。在一次采集过程中，机械臂不慎碰掉了一块岩石，露出后面一个更小的热液喷口，一群从未见过的、全身透明的小鱼从中游了出来，它们在探照灯的光芒下显得如梦似幻。这个意外的发现让整个科考队都沸腾了。返回母船的途中，林苒在工作日志中写道：“今天，我亲眼见证了生命的奇迹。在最严酷的环境中，生命总能以最令人意想不到的方式绽放。地球上尚有如此多的未知等待我们去探索，这激励着我必须更加努力地学习和研究。我们不是在征服自然，而是在怀着谦卑之心，试图读懂这本厚重而精彩的生命之书。”这次科考的发现震惊了世界生物学界，也让林苒更加坚定了自己的人生方向：将一生奉献给深海探索事业，去揭示更多隐藏在蓝色星球深处的秘密。`,
+                    questions: [
+                        { question: "海底“龙宫”的环境有什么特点？", options: ["A. 阳光普照，温暖舒适", "B. 黑暗、高压、高温、有毒", "C. 充满了各种美丽的珊瑚", "D. 水流平缓，适合鱼类生存"], correct: 1, feedback: "文章描述了这里是'漆黑一片，压力巨大，温度极高'的极端环境。" },
+                        { question: "“龙宫”的生物是如何获取能量的？", options: ["A. 依靠阳光进行光合作用", "B. 捕食其他小型鱼类", "C. 依靠共生细菌分解化学物质", "D. 吸收海底的矿物质"], correct: 2, feedback: "巨大的管状蠕虫依靠体内共生的细菌来“消化”热泉中的化学物质获取能量。" },
+                        { question: "科学家们是通过什么设备到达“龙宫”的？", options: ["A. 潜水艇", "B. “奋斗者”号深潜器", "C. 水下机器人", "D. 蛟龙号"], correct: 1, feedback: "文章明确提到，科学家们通过“奋斗者”号深潜器发现了这个生态系统。" },
+                        { question: "科考过程中的意外发现是什么？", options: ["A. 发现了一艘沉船", "B. 采集到了金矿石", "C. 发现了一群全身透明的未知小鱼", "D. 机械臂发生了故障"], correct: 2, feedback: "机械臂碰掉岩石后，'一群从未见过的、全身透明的小鱼从中游了出来'。" },
+                        { question: "林苒从这次科考经历中领悟到了什么？", options: ["A. 征服自然是人类的目标", "B. 深海探索非常危险，应该停止", "C. 地球已经没有秘密可言", "D. 应怀着谦卑之心探索未知，生命的坚韧超乎想象"], correct: 3, feedback: "她的日志写道：'我们不是在征服自然，而是在怀着谦卑之心，试图读懂这本厚重而精彩的生命之书。'" }
+                    ]
+                },
+                 set6: {
+                    name: "第六组：丝路上的“活化石”",
+                    passage: `在古代丝绸之路上，骆驼的驼铃声曾是商旅们最熟悉的旋律。然而，随着现代交通的发展，这条千年古道渐渐沉寂。但在这条古道的一个重要节点——月牙泉边，一项古老而独特的技艺却在一位名叫沙泉的老人手中得以传承，并焕发出新的生机。这项技艺就是“木版水印”，一门被誉为印刷术“活化石”的中国传统工艺。沙泉老人的祖辈曾是丝绸之路上为往来客商印制通关文牒和经文的工匠。木版水印工艺极其复杂，从选材、绘画、刻板到印刷，每一步都考验着工匠的技艺与耐心。首先，要将画稿精准地反向描绘在平整的木板上；然后，用刻刀一刀一刀地将画稿的线条和轮廓刻出，这被称为“刻板”；最后，根据原画的色彩，分别在不同的刻板上施以水性颜料，再依次将它们印在宣纸上，这个过程叫“印刷”。一幅复杂的作品，往往需要几十甚至上百块印版，历时数月才能完成。成品色彩自然，层次丰富，具有水墨画般的韵味，这是现代机器印刷无法比拟的。然而，这门精湛的技艺在新时代面临着失传的危机。年轻人大多不愿学习这门枯燥、辛苦且收入微薄的手艺。沙泉老人曾一度感到孤独和绝望，他守护的不仅仅是一门手艺，更是一段承载着丝路记忆的文化。转机出现在一位名叫李响的年轻设计师身上。李响在一次采风旅行中偶然走进了沙泉老人的工作室，立刻被那些精美的木版水印作品所震撼。他意识到，这不应是束之高阁的古董，而是可以融入现代生活的艺术。李响说服了老人，开始了一场“传统与现代的对话”。他运用自己的设计理念，将传统的飞天、骆驼等丝路元素，与现代审美相结合，设计出了一系列新颖的图案，如书签、手机壳、丝巾等文创产品。沙泉老人负责用传统工艺将这些设计变为现实。他们的合作起初并不顺利。老人固守传统，认为李响的设计“花里胡哨”，失去了古韵；而李响则觉得老人的手艺虽然精湛，但内容陈旧，难以吸引年轻人。经过无数次的争论、磨合与尝试，他们终于找到了平衡点。当第一批融合了现代设计与古老工艺的木版水印丝巾在网上发售时，立刻受到了年轻人的热烈追捧。人们惊叹于那细腻的刻印和温润的色彩，也为其中蕴含的文化故事所吸引。许多游客慕名来到月牙泉，不仅是为了欣赏风景，更是为了一睹这门“活化石”技艺的风采，甚至报名体验课程，亲手印制一张属于自己的作品。沙泉老人看着工作室里久违的热闹景象，眼中泛起了泪光。他明白，最好的传承不是原封不动地守护，而是让古老的智慧在新的时代里，以一种全新的方式继续“呼吸”和“生长”。`,
+                    questions: [
+                        { question: "什么是“木版水印”工艺？", options: ["A. 一种现代数码印刷技术", "B. 一种用木头做印章的简单手艺", "C. 一种复杂的传统手工印刷技艺", "D. 一种在木板上画画的艺术"], correct: 2, feedback: "文章详细解释了其绘画、刻板、印刷的复杂过程，并称其为'活化石'。" },
+                        { question: "沙泉老人的技艺面临失传的主要原因是什么？", options: ["A. 工艺太简单，没有价值", "B. 没有合适的木材", "C. 工艺枯燥辛苦，年轻人不愿学", "D. 政府禁止这项工艺"], correct: 2, feedback: "文中提到'年轻人大多不愿学习这门枯燥、辛苦且收入微薄的手艺'。" },
+                        { question: "年轻设计师李响是如何帮助这项技艺焕发生机的？", options: ["A. 用机器代替了手工", "B. 将传统工艺与现代设计结合，开发文创产品", "C. 劝说沙泉老人放弃手艺", "D. 为沙泉老人拍摄了纪录片"], correct: 1, feedback: "他将传统元素与现代审美结合，设计出了一系列新颖的文创产品。" },
+                        { question: "沙泉老人和李响的合作初期遇到了什么困难？", options: ["A. 资金不足", "B. 找不到销售渠道", "C. 两人在艺术理念上存在冲突", "D. 缺乏工具和材料"], correct: 2, feedback: "文中描述了他们因'传统与现代'的理念不同而发生的争论与磨合。" },
+                        { question: "故事结尾揭示了关于文化传承的什么道理？", options: ["A. 传统文化应该被博物馆收藏", "B. 传统文化无法适应现代社会", "C. 最好的传承是让其与时代结合，焕发新生", "D. 只有老年人才会欣赏传统文化"], correct: 2, feedback: "结尾点明：'最好的传承不是原封不动地守护，而是让古老的智慧在新的时代里，以一种全新的方式继续‘呼吸’和‘生长’。'" }
+                    ]
+                }
+            }
+        };
+
+        // Game State
+        let currentSetData = null;
+        let currentLevelKey = '';
+        let currentSetKey = '';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answers = [];
+        let startTime = null;
+        let timerInterval = null;
+        let countdownInterval = null;
+
+        function showScreen(screenClass) {
+            document.querySelectorAll('.container > div').forEach(div => {
+                div.classList.toggle('active', div.classList.contains(screenClass));
+            });
+        }
+        
+        function showLevelScreen() {
+            showScreen('start-screen');
+        }
+        
+        function showSetScreen(levelKey) {
+            currentLevelKey = levelKey;
+            const levelData = quizData[levelKey];
+            const container = document.getElementById('set-selection-container');
+            container.innerHTML = '';
+            Object.keys(levelData).forEach(setKey => {
+                const set = levelData[setKey];
+                const btn = document.createElement('button');
+                btn.className = 'set-btn';
+                btn.textContent = set.name;
+                btn.onclick = () => startQuiz(levelKey, setKey);
+                container.appendChild(btn);
+            });
+            showScreen('set-selection-screen');
+        }
+
+        function startQuiz(levelKey, setKey) {
+            currentLevelKey = levelKey;
+            currentSetKey = setKey;
+            currentSetData = quizData[levelKey][setKey];
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            answers = new Array(currentSetData.questions.length).fill(null);
+            startTime = Date.now();
+            
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            document.getElementById('current-score').textContent = '0';
+            document.getElementById('total-questions').textContent = currentSetData.questions.length;
+            document.getElementById('passage').innerHTML = currentSetData.passage.replace(/\n/g, '<br><br>');
+            
+            document.getElementById('prev-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            
+            showScreen('quiz-screen');
+            loadQuestion();
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function loadQuestion() {
+            if (countdownInterval) clearInterval(countdownInterval);
+            document.getElementById('countdown').style.display = 'none';
+
+            const question = currentSetData.questions[currentQuestionIndex];
+            
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+            document.getElementById('progress').style.width = 
+                `${((currentQuestionIndex + 1) / currentSetData.questions.length) * 100}%`;
+            
+            document.getElementById('question-text').textContent = 
+                `${currentQuestionIndex + 1}. ${question.question}`;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = option;
+                btn.onclick = () => selectOption(index);
+                optionsContainer.appendChild(btn);
+            });
+
+            const feedbackEl = document.getElementById('feedback');
+            feedbackEl.classList.remove('show', 'correct', 'incorrect');
+            
+            // For review mode
+            if(answers[currentQuestionIndex] !== null) {
+                showAnswerResult();
+            }
+        }
+        
+        function selectOption(index) {
+            if (answers[currentQuestionIndex] !== null) return;
+
+            const question = currentSetData.questions[currentQuestionIndex];
+            const isCorrect = index === question.correct;
+            
+            answers[currentQuestionIndex] = index;
+            
+            if (isCorrect) {
+                score++;
+                document.getElementById('current-score').textContent = score;
+            }
+            
+            showAnswerResult();
+            startCountdown();
+        }
+
+        function showAnswerResult() {
+            const question = currentSetData.questions[currentQuestionIndex];
+            const userAnswer = answers[currentQuestionIndex];
+            const isCorrect = userAnswer === question.correct;
+
+            const feedbackEl = document.getElementById('feedback');
+            feedbackEl.textContent = question.feedback;
+            feedbackEl.className = `feedback ${isCorrect ? 'correct' : 'incorrect'} show`;
+            
+            const optionBtns = document.querySelectorAll('.option-btn');
+            optionBtns.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === question.correct) {
+                    btn.classList.add('correct');
+                } else if (i === userAnswer) {
+                    btn.classList.add('incorrect');
+                }
+            });
+        }
+
+        function startCountdown() {
+            let count = 3;
+            const countdownEl = document.getElementById('countdown');
+            const message = currentQuestionIndex === currentSetData.questions.length - 1 ? "即将进入结算页面..." : "即将进入下一题...";
+            
+            countdownEl.textContent = `${count} 秒后${message}`;
+            countdownEl.style.display = 'block';
+
+            countdownInterval = setInterval(() => {
+                count--;
+                countdownEl.textContent = `${count} 秒后${message}`;
+                if (count <= 0) {
+                    clearInterval(countdownInterval);
+                    if (currentQuestionIndex === currentSetData.questions.length - 1) {
+                        showResults();
+                    } else {
+                        nextQuestion();
+                    }
+                }
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentSetData.questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        function showResults() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            const percentage = (score / currentSetData.questions.length) * 100;
+            
+            document.getElementById('final-score').textContent = `${score}/${currentSetData.questions.length}`;
+            
+            let emoji, message;
+            if (percentage === 100) { emoji = '🏆'; message = '完美！你真是华文小天才！'; } 
+            else if (percentage >= 80) { emoji = '🌟'; message = '太棒了！继续保持！'; } 
+            else if (percentage >= 60) { emoji = '👍'; message = '不错哦！再加油！'; } 
+            else { emoji = '💪'; message = '继续努力，你一定可以的！'; }
+            
+            document.getElementById('result-emoji').textContent = emoji;
+            document.getElementById('result-message').textContent = message;
+            
+            showScreen('result-screen');
+        }
+
+        function reviewAnswers() {
+            currentQuestionIndex = 0;
+            showScreen('quiz-screen');
+            
+            document.getElementById('prev-btn').style.display = 'block';
+            document.getElementById('next-btn').style.display = 'block';
+            document.getElementById('prev-btn').disabled = true;
+            document.getElementById('next-btn').disabled = false;
+
+            loadQuestion();
+        }
+
+        function restartCurrentQuiz() {
+            startQuiz(currentLevelKey, currentSetKey);
+        }
+
+        function restartQuiz() {
+            if (timerInterval) clearInterval(timerInterval);
+            if (countdownInterval) clearInterval(countdownInterval);
+            showLevelScreen();
+        }
+    </script>
+</body>
+</html>
